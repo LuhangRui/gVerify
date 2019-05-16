@@ -42,3 +42,5 @@ fork from  wangjiangman/gVerify
 </script>
 
 ```
+
+![示意图](20190516092801.png)
