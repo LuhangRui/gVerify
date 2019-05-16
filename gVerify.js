@@ -5,8 +5,9 @@
       canvasId: "verifyCanvas", //canvas的ID
       width: "100", //默认canvas宽度
       height: "30", //默认canvas高度
-      type: "blend", //图形验证码默认类型blend:数字字母混合类型、number:纯数字、letter:纯字母
-      code: ""
+      type: "blend", //图形验证码默认类型blend:数字字母混合类型、number:纯数字、letter:纯字母、calc:计算
+      code: "",
+      length: 4
     }
 
     if (Object.prototype.toString.call(options) == "[object Object]") {//判断传入参数类型
@@ -65,13 +66,27 @@
         var txtArr = this.options.numArr.concat(this.options.letterArr);
       } else if (this.options.type == "number") {
         var txtArr = this.options.numArr;
+      } else if (this.options.type == "calc") {
+        var pram1 = randomNum(10,100);
+        var pram2 = randomNum(10,100);
+        if (pram1<pram2) {
+          let tmp = pram1;
+          pram1 = pram2;
+          pram2 = tmp;
+        }
+        var calc = ['+','-'][randomNum(0, 2)];
+        this.options.code = eval(pram1+''+calc+''+pram2);
+        var verify_code = [pram1,calc,pram2,'=','?'];
+        this.options.length = verify_code.length;
       } else {
         var txtArr = this.options.letterArr;
       }
+      for (var i = 0; i < this.options.length; i++) {
+        if (this.options.type != "calc") {
+            var txt = txtArr[randomNum(0, txtArr.length)];
+            this.options.code += txt;   
 
-      for (var i = 1; i <= 4; i++) {
-        var txt = txtArr[randomNum(0, txtArr.length)];
-        this.options.code += txt;
+        }
         ctx.font = randomNum(this.options.height / 2, this.options.height) + 'px SimHei'; //随机生成字体大小
         ctx.fillStyle = randomColor(50, 160); //随机生成字体颜色        
         ctx.shadowOffsetX = randomNum(-3, 3);
@@ -84,7 +99,11 @@
         /**设置旋转角度和坐标原点**/
         ctx.translate(x, y);
         ctx.rotate(deg * Math.PI / 180);
-        ctx.fillText(txt, 0, 0);
+        if (this.options.type != "calc") {
+          ctx.fillText(txt, 0, 0);
+        } else {
+          ctx.fillText(verify_code[i], 0, 0);
+        }
         /**恢复旋转角度和坐标原点**/
         ctx.rotate(-deg * Math.PI / 180);
         ctx.translate(-x, -y);
@@ -108,9 +127,13 @@
 
     /**验证验证码**/
     validate: function (code) {
-      var code = code.toLowerCase();
-      var v_code = this.options.code.toLowerCase();
-      console.log(v_code);
+      if (this.options.type != "calc") {
+          var code = code.toLowerCase();
+          var v_code = this.options.code.toLowerCase();
+      } else {
+          var code = parseInt(code);
+          var v_code = parseInt(this.options.code);
+      }
       if (code == v_code) {
         return true;
       } else {
